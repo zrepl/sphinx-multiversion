@@ -248,10 +248,16 @@ def main(argv=None):
                 )
                 continue
 
+            # zrepl: use a scheme that looks like sphinxcontrib-versioning
+            # so we don't break URLs: https://github.com/zrepl/zrepl/pull/734
+            # => render the latest version at `/`
+            # => all other versions: render at `/{name}`
+            assert "smv_latest_version" in confoverrides, "must specify smv_latest_version, expecting to be used from zrepl's run-sphinx-multiversion.py"
+            if confoverrides["smv_latest_version"]  == gitref.name:
+                outputdir = "."
+            else:
+                outputdir = gitref.name
             # Ensure that there are not duplicate output dirs
-            outputdir = config.smv_outputdir_format.format(
-                ref=gitref, config=current_config,
-            )
             if outputdir in outputdirs:
                 logger.warning(
                     "outputdir '%s' for %s conflicts with other versions",
