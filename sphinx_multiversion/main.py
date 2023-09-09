@@ -212,10 +212,14 @@ def main(argv=None):
     )
 
     # Order git refs
-    if config.smv_prefer_remote_refs:
-        gitrefs = sorted(gitrefs, key=lambda x: (not x.is_remote, *x))
-    else:
-        gitrefs = sorted(gitrefs, key=lambda x: (x.is_remote, *x))
+    import distutils.version
+    def gitrefs_sort_key(gitref):
+        if gitref.source == "tags":
+            assert gitref.name.startswith("v"), "zrepl release tags must start with 'v'"
+            stripped = gitref.name[1:]
+            return (0, distutils.version.StrictVersion(stripped))
+        return (1, gitref.name)
+    gitrefs = sorted(gitrefs, key=gitrefs_sort_key, reverse=True)
 
     logger = logging.getLogger(__name__)
 
